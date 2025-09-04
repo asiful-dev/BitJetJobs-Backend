@@ -87,6 +87,10 @@ export class AuthService {
             throw new UnauthorizedException('User not found.');
         }
 
+        if(user.isVerified) {
+            throw new ConflictException('User is already verified.');
+        }
+
         // Generate a random 6-digit OTP
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 minutes
