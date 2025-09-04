@@ -61,28 +61,6 @@ export class UsersService {
       where: { id },
     });
   }
-  async updateProfile(id: number, role: UserRole, profileData: any) {
-    if (role === UserRole.JOB_SEEKER) {
-      return this.databaseService.jobSeekerProfile.upsert({
-        where: { userId: id },
-        update: { ...profileData },
-        create: {
-          userId: id,
-          ...profileData,
-        },
-      });
-    } else if (role === UserRole.EMPLOYER) {
-      return this.databaseService.employerProfile.upsert({
-        where: { userId: id },
-        update: { ...profileData },
-        create: {
-          userId: id,
-          ...profileData,
-        },
-      });
-    }
 
-    throw new BadRequestException('Invalid user role.');
-  }
 
 }
