@@ -63,6 +63,7 @@
   // The core model for all users.
   model User {
     id                Int               @id @default(autoincrement())
+    name              String        
     email             String            @unique
     password          String
     role              UserRole          @default(JOB_SEEKER)
