@@ -1,61 +1,32 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { Prisma, UserRole } from 'generated/prisma';
-import { DatabaseService } from 'src/database/database.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly databaseService: DatabaseService) { }
-  async create(createUserDto: Prisma.UserCreateInput) {
-    return this.databaseService.user.create({
-      data: createUserDto,
-    });
-  }
+  constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  async findAll() {
-    return this.databaseService.user.findMany();
-  }
+  async register(createUserDto: CreateUserDto, profileImage: Express.Multer.File) {
+    const { password, ...userData } = createUserDto;
+    
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  async findOne(id: number) {
-    return this.databaseService.user.findUnique({
-      where: { id },
-    });
-  }
+    // Upload the profile image to Cloudinary
+    const imageUrl = await this.cloudinaryService.uploadImage(profileImage);
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    return this.databaseService.user.update({
-      where: { id },
-      data: updateUserDto,
-    });
-  }
+    // In a real application, you would save this data to a database
+    const newUser = {
+      ...userData,
+      password: hashedPassword,
+      profileImageUrl: imageUrl,
+      createdAt: new Date(),
+    };
 
-  async remove(id: number) {
-    return this.databaseService.user.delete({
-      where: { id },
-    });
-  }
-  async updateProfile(id: number, role: UserRole, profileData: any) {
-    if (role === UserRole.JOB_SEEKER) {
-      return this.databaseService.jobSeekerProfile.upsert({
-        where: { userId: id },
-        update: { ...profileData },
-        create: {
-          userId: id,
-          ...profileData,
-        },
-      });
-    } else if (role === UserRole.EMPLOYER) {
-      return this.databaseService.employerProfile.upsert({
-        where: { userId: id },
-        update: { ...profileData },
-        create: {
-          userId: id,
-          ...profileData,
-        },
-      });
-    }
+    // For now, we'll just log the user object
+    console.log('New user registered:', newUser);
 
-    throw new BadRequestException('Invalid user role.');
+    return { message: 'User registered successfully!', user: newUser };
   }
 }
