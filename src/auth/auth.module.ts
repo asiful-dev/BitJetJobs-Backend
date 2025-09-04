@@ -7,11 +7,13 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { DatabaseModule } from 'src/database/database.module';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     DatabaseModule,
     PassportModule,
+    CloudinaryModule,
     ConfigModule, // Import ConfigModule
     JwtModule.registerAsync({
       imports: [ConfigModule],

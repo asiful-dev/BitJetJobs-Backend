@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import * as bcrypt from 'bcryptjs';
-import { Prisma, UserRole } from 'generated/prisma';
+import { Prisma, UserRole } from '../../generated/prisma';
 import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()

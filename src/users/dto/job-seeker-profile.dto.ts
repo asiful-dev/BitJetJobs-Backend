@@ -1,5 +1,5 @@
 import { IsEnum, IsString, IsArray, IsOptional } from 'class-validator';
-import { JobSeekerRole, WorkType } from 'generated/prisma';
+import { JobSeekerRole, WorkType } from '../../../generated/prisma';
 
 export class JobSeekerProfileDto {
   @IsString()

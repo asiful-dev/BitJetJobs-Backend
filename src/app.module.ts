@@ -9,8 +9,13 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 
 @Module({
-  imports: [DatabaseModule, UsersModule, AuthModule, CloudinaryModule],
+  imports: [
+    DatabaseModule,
+    UsersModule,
+    AuthModule,
+    CloudinaryModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

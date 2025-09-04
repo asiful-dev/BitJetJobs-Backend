@@ -3,7 +3,7 @@
 
   generator client {
     provider = "prisma-client-js"
-    output   = "../generated/prisma"
+    output   = "../node_modules/.prisma/client"
   }
 
   datasource db {
@@ -63,7 +63,7 @@
   // The core model for all users.
   model User {
     id                Int               @id @default(autoincrement())
-    name              String        
+    name              String            @default("User")
     email             String            @unique
     password          String
     role              UserRole          @default(JOB_SEEKER)

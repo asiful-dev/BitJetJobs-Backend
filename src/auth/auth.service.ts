@@ -7,7 +7,7 @@ import { createTransport } from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { User } from 'generated/prisma';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class AuthService {
@@ -16,30 +16,41 @@ export class AuthService {
     constructor(
         private readonly databaseService: DatabaseService,
         private readonly jwtService: JwtService,
+        private readonly cloudinaryService: CloudinaryService,
         private readonly configService: ConfigService,
     ) { }
 
-    async register(createUserDto: CreateUserDto) {
-        const existingUser = await this.databaseService.user.findUnique({
-            where: { email: createUserDto.email },
-        });
-        if (existingUser) {
-            throw new ConflictException('A user with this email already exists.');
+    async register(createUserDto: CreateUserDto, profileImage: Express.Multer.File) {
+        try {
+            const existingUser = await this.databaseService.user.findUnique({
+                where: { email: createUserDto.email },
+            });
+            if (existingUser) {
+                throw new ConflictException('A user with this email already exists.');
+            }
+    
+            const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+            const imageUrl = await this.cloudinaryService.uploadImage(profileImage);
+    
+            console.log(imageUrl);
+            
+            const user = await this.databaseService.user.create({
+                data: {
+                    ...createUserDto,
+                    password: hashedPassword,
+                    avatarUrl: imageUrl.url,
+                },
+            });
+            
+            console.log(user);
+            this.logger.log(`User registered with email: ${user.email}`);
+    
+            const { password, ...result } = user;
+            return result;
+        } catch (error) {
+            this.logger.error(`Registration failed: ${error.message}`);
+            throw error;
         }
-
-        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-        const user = await this.databaseService.user.create({
-            data: {
-                ...createUserDto,
-                password: hashedPassword,
-            },
-        });
-
-        this.logger.log(`User registered with email: ${user.email}`);
-
-        const { password, ...result } = user;
-        return result;
     }
 
     async login(loginUserDto: LoginUserDto) {
