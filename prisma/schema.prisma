@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum to define the two types of users in the system.
+enum UserRole {
+  JOB_SEEKER
+  EMPLOYER
+}
+
+// Enum for the specific roles a job-seeker can select.
+enum JobSeekerRole {
+  FLIGHT_ATTENDANT
+  PILOT
+  AVIATION_MANAGEMENT
+}
+
+// Enum for the preferred work types.
+enum WorkType {
+  full_time
+  part_time
+  contract
+}
+
+// Enum for the specific job roles an employer can post.
+enum JobRoles {
+  FULL_TIME_PILOTS
+  CONTRACT_PILOTS
+  FLIGHT_ATTENDANTS
+  AVIATION_MANAGERS
+}
+
+// Enum for employer plan tiers, directly tying to the number of jobs.
+enum NumJobs {
+  ONE
+  TWO_TO_FIVE
+  SIX_PLUS
+}
+
+// Enum for the subscription status.
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELED
+}
+
+// Enum for the payment status.
+enum PaymentStatus {
+  SUCCEEDED
+  FAILED
+  PENDING
+}
+
+// The core model for all users.
+model User {
+  id                Int               @id @default(autoincrement())
+  email             String            @unique
+  password          String
+  role              UserRole          @default(JOB_SEEKER)
+  isVerified        Boolean           @default(false)
+  otpCode           String?
+  otpExpiresAt      DateTime?
+  avatarUrl         String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  jobSeekerProfile  JobSeekerProfile?
+  employerProfile   EmployerProfile?
+  subscription      Subscription?
+}
+
+// Stores information specific to job-seekers.
+model JobSeekerProfile {
+  id                 Int       @id @default(autoincrement())
+  name               String
+  phone              String?
+  roles              JobSeekerRole[]
+  preferredWorkTypes WorkType[]
+  
+  user               User      @relation(fields: [userId], references: [id])
+  userId             Int       @unique
+}
+
+// Stores information specific to employers.
+model EmployerProfile {
+  id                 Int       @id @default(autoincrement())
+  companyName        String
+  numJobs            NumJobs   // Now uses an enum for data integrity
+  jobRoles           JobRoles[]
+  
+  user               User      @relation(fields: [userId], references: [id])
+  userId             Int       @unique
+  
+  
+}
+
+
+
+// Tracks the subscription status for a user.
+model Subscription {
+  id                 Int       @id @default(autoincrement())
+  status             SubscriptionStatus // Now uses an enum
+  startDate          DateTime
+  endDate            DateTime
+  planName           String
+  planPrice          Float
+  
+  user               User      @relation(fields: [userId], references: [id])
+  userId             Int       @unique
+  
+  payments           Payment[]
+}
+
+// Stores a history of all payments made by users.
+model Payment {
+  id                 Int       @id @default(autoincrement())
+  amount             Float
+  currency           String
+  status             PaymentStatus // Now uses an enum
+  transactionId      String    @unique
+  paymentMethod      String?
+  createdAt          DateTime  @default(now())
+  
+  subscription       Subscription @relation(fields: [subscriptionId], references: [id])
+  subscriptionId     Int
+}
