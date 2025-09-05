@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -28,23 +29,24 @@ export class AuthService {
             if (existingUser) {
                 throw new ConflictException('A user with this email already exists.');
             }
-    
+
             const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
             const imageUrl = await this.cloudinaryService.uploadImage(profileImage);
-    
+
             console.log(imageUrl);
-            
+
             const user = await this.databaseService.user.create({
                 data: {
                     ...createUserDto,
                     password: hashedPassword,
+                    role: createUserDto.role || UserRole.JOB_SEEKER,
                     avatarUrl: imageUrl.url,
                 },
             });
-            
+
             console.log(user);
             this.logger.log(`User registered with email: ${user.email}`);
-    
+
             const { password, ...result } = user;
             return result;
         } catch (error) {
@@ -87,7 +89,7 @@ export class AuthService {
             throw new UnauthorizedException('User not found.');
         }
 
-        if(user.isVerified) {
+        if (user.isVerified) {
             throw new ConflictException('User is already verified.');
         }
 

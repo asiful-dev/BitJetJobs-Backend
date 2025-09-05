@@ -1,4 +1,5 @@
-import { IsEmail, IsString, MinLength, Matches, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, Matches, IsOptional, IsEnum } from 'class-validator';
+import { UserRole } from '@prisma/client';
 
 export class CreateUserDto {
   @IsString()
@@ -18,5 +19,10 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @IsOptional()
+  @IsEnum(UserRole, { message: "Role must be a valid UserRole (JOB_SEEKER or EMPLOYER)" })
+  role?:UserRole
+
 
 }
